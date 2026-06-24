@@ -1,0 +1,1 @@
+export type { FormatAdapter } from './types.ts'
