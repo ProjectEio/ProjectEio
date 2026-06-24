@@ -1,0 +1,19 @@
+.footer {
+  border-top: 1px solid var(--color-border);
+  padding-block: var(--space-6);
+  margin-top: var(--space-9);
+  color: var(--color-text-mute);
+  font-size: 13px;
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.tagline {
+  color: var(--color-text-soft);
+}

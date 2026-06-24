@@ -1,0 +1,76 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  background: rgba(11, 13, 18, 0.72);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.4px;
+  color: var(--color-text);
+}
+
+.logoMark {
+  color: var(--color-accent);
+  transform: rotate(45deg);
+  display: inline-block;
+}
+
+.logoText {
+  background: linear-gradient(
+    120deg,
+    #fff 0%,
+    #d8d2ff 50%,
+    #b2f0dc 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-size: 14px;
+  color: var(--color-text-soft);
+}
+.nav a {
+  transition: color 160ms ease;
+}
+.nav a:hover {
+  color: var(--color-text);
+}
+
+.navGithub {
+  padding: 6px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+.navGithub:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+@media (max-width: 640px) {
+  .nav a:not(.navGithub) {
+    display: none;
+  }
+}
