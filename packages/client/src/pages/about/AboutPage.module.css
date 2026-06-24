@@ -1,0 +1,22 @@
+/* 关于页对原 IntroPage 的色彩做层级反转，让它能在主题下都好看。
+   原介绍页本来是基于深色 token（旧版 tokens.css）写的，这里
+   通过覆盖局部 CSS 变量名（旧 → 新）来保持视觉一致。 */
+.wrap {
+  /* 把旧介绍页里用到的旧变量名映射到新双主题变量上 */
+  --color-bg: var(--bg-layout);
+  --color-bg-elev: var(--bg-container);
+  --color-bg-soft: var(--bg-layout);
+  --color-border: var(--border-light);
+  --color-border-strong: var(--border-color);
+
+  --color-text: var(--text-primary);
+  --color-text-soft: var(--text-secondary);
+  --color-text-mute: var(--text-disabled);
+
+  --color-accent: var(--primary-color);
+  --color-accent-2: var(--success-color);
+  --color-accent-soft: var(--primary-soft);
+
+  --shadow-glow: 0 0 0 1px var(--primary-soft-strong),
+    0 12px 32px var(--primary-soft);
+}

@@ -1,0 +1,29 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--space-4);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.req { color: var(--error-color); }
+
+.control { display: block; }
+
+.extra {
+  font-size: 12px;
+  color: var(--text-disabled);
+}
+.error {
+  font-size: 12px;
+  color: var(--error-color);
+  min-height: 18px;
+}

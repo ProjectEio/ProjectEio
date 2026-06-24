@@ -1,15 +1,24 @@
-import { createBrowserRouter } from 'react-router-dom'
-import { RootLayout } from '@/layouts/RootLayout'
-import IntroPage from '@/pages/intro'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { AdminLayout } from '@/layouts/AdminLayout'
+import { ProtectedRoute } from '@/auth/ProtectedRoute'
+import LoginPage from '@/pages/login/LoginPage'
+import DashboardPage from '@/pages/dashboard/DashboardPage'
+import AboutPage from '@/pages/about/AboutPage'
 
 export const router = createBrowserRouter([
+  { path: '/login', element: <LoginPage /> },
   {
     path: '/',
-    element: <RootLayout />,
+    element: (
+      <ProtectedRoute>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
-      { index: true, element: <IntroPage /> },
-      // 预留: { path: 'console', element: <ConsolePage /> },
+      { index: true, element: <DashboardPage /> },
+      { path: 'about', element: <AboutPage /> },
       // 预留: { path: 'plugins', element: <PluginsPage /> },
     ],
   },
+  { path: '*', element: <Navigate to="/" replace /> },
 ])

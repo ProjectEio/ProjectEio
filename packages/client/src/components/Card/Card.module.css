@@ -1,0 +1,34 @@
+.card {
+  background: var(--bg-container);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+}
+.bordered { border: 1px solid var(--border-light); }
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-light);
+}
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.extra {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.body { flex: 1; min-width: 0; }
+
+.p-none { padding: 0; }
+.p-sm   { padding: var(--space-3) var(--space-4); }
+.p-md   { padding: var(--space-5); }
+.p-lg   { padding: var(--space-6); }

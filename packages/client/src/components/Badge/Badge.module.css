@@ -1,0 +1,42 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-container);
+  color: var(--text-secondary);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.t-default { /* base */ }
+
+.t-primary {
+  color: var(--primary-color);
+  background: var(--primary-soft);
+  border-color: transparent;
+}
+.t-success {
+  color: var(--success-color);
+  background: var(--success-soft);
+  border-color: transparent;
+}
+.t-warning {
+  color: var(--warning-color);
+  background: var(--warning-soft);
+  border-color: transparent;
+}
+.t-error {
+  color: var(--error-color);
+  background: var(--error-soft);
+  border-color: transparent;
+}
