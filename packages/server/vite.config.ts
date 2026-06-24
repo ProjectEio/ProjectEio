@@ -9,7 +9,7 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: ['express'],
+      external: ['hono', '@hono/node-server'],
     },
     outDir: 'dist',
   },
