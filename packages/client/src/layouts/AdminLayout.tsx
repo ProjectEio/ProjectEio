@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/Button'
+import { RainbowText } from '@/components/RainbowText'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuth } from '@/auth/useAuth'
 import styles from './AdminLayout.module.css'
@@ -24,7 +25,7 @@ export function AdminLayout() {
         <div className={styles.left}>
           <span className={styles.brand}>
             <span className={styles.logoMark}>◆</span>
-            <span className={styles.brandText}>Eio Console</span>
+            <RainbowText className={styles.brandText}>Eio Console</RainbowText>
           </span>
           <nav className={styles.nav}>
             {NAV.map((n) => (

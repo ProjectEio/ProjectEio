@@ -1,0 +1,49 @@
+.rainbow {
+  display: inline-block;
+  /* fallback：不支持 background-clip:text 时仍可见 */
+  color: var(--text-primary);
+
+  /* 把同一个色环画两遍，让循环边界两端颜色完全相同 → 无缝衔接 */
+  background-image: linear-gradient(
+    90deg,
+    #1677ff 0%,
+    #7c5cff 10%,
+    #29d3a6 20%,
+    #faad14 30%,
+    #ff4d4f 40%,
+    #1677ff 50%,
+    #7c5cff 60%,
+    #29d3a6 70%,
+    #faad14 80%,
+    #ff4d4f 90%,
+    #1677ff 100%
+  );
+  /* 渐变 2 倍宽，半幅 = 一个完整色环；动画刚好平移一个色环的距离 → 永不停歇 */
+  background-size: 200% 100%;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  animation: rainbow-flow 4s linear infinite;
+  letter-spacing: 0.01em;
+}
+
+@keyframes rainbow-flow {
+  from { background-position: 100% 0; }
+  to   { background-position: 0% 0; }
+}
+
+/* 仅在真的支持 text 裁剪时才让文字本身透明 */
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .rainbow {
+    color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rainbow {
+    animation: none;
+    background-position: 50% 0;
+  }
+}

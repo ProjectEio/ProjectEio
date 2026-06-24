@@ -3,9 +3,11 @@ import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { Checkbox } from '@/components/Checkbox'
 import { FloatingInput } from '@/components/FloatingInput'
+import { RainbowText } from '@/components/RainbowText'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuth } from '@/auth/useAuth'
 import { HttpError } from '@/lib/http'
+import { notify } from '@/notify'
 import styles from './LoginPage.module.css'
 
 interface LocState {
@@ -49,11 +51,13 @@ export default function LoginPage() {
     setSubmitting(true)
     try {
       await login(username.trim(), password)
+      notify.success('登录成功')
       navigate(from, { replace: true })
     } catch (err) {
       const msg =
         err instanceof HttpError ? err.message : '登录失败，请稍后重试'
       setError(msg)
+      notify.error(msg)
     } finally {
       setSubmitting(false)
     }
@@ -64,7 +68,7 @@ export default function LoginPage() {
       <header className={styles.topbar}>
         <Link to="/about" className={styles.brand}>
           <span className={styles.logoMark}>◆</span>
-          <span>Eio</span>
+          <RainbowText>Eio</RainbowText>
         </Link>
         <ThemeToggle />
       </header>
