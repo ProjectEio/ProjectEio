@@ -1,0 +1,79 @@
+[
+  {
+    "id": "r1",
+    "name": "GPT-4 -> OpenAI US (sticky)",
+    "priority": 100,
+    "match": {
+      "model": "gpt-4"
+    },
+    "nodeId": "mock-oa-1",
+    "pluginChain": [
+      "sticky-node.route",
+      "transformer.log",
+      "transformer.cap_messages.{\"count\":10}",
+      "echo.echo"
+    ]
+  },
+  {
+    "id": "r2",
+    "name": "GPT-3.5 -> OpenAI EU (fallback)",
+    "priority": 50,
+    "match": {
+      "model": "gpt-3.5-turbo"
+    },
+    "nodeId": "mock-oa-2",
+    "pluginChain": [
+      "transformer.log",
+      "echo.echo"
+    ]
+  },
+  {
+    "id": "r3",
+    "name": "Claude -> Anthropic US",
+    "priority": 100,
+    "match": {
+      "model": "claude-3-opus"
+    },
+    "nodeId": "mock-ant-1",
+    "pluginChain": [
+      "transformer.log",
+      "echo.echo"
+    ]
+  },
+  {
+    "id": "r4",
+    "name": "Claude Sonnet -> Anthropic EU",
+    "priority": 80,
+    "match": {
+      "model": "claude-3-sonnet"
+    },
+    "nodeId": "mock-ant-2",
+    "pluginChain": [
+      "transformer.log",
+      "echo.echo"
+    ]
+  },
+  {
+    "id": "r5",
+    "name": "RES model -> RES node",
+    "priority": 100,
+    "match": {
+      "model": "res-model"
+    },
+    "nodeId": "mock-res-1",
+    "pluginChain": [
+      "res2xxx.convert.{\"target\":\"openai\"}",
+      "echo.echo"
+    ]
+  },
+  {
+    "id": "r99",
+    "name": "Catch-all -> OpenAI US",
+    "priority": 1,
+    "match": {},
+    "nodeId": "mock-oa-1",
+    "pluginChain": [
+      "echo.echo"
+    ]
+  }
+]

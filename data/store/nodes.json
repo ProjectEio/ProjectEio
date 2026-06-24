@@ -1,0 +1,60 @@
+[
+  {
+    "id": "mock-oa-1",
+    "name": "Mock OpenAI US",
+    "type": "openai",
+    "baseUrl": "http://localhost:3099",
+    "apiKey": "sk-mock",
+    "models": [
+      "gpt-4",
+      "gpt-3.5-turbo"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "mock-oa-2",
+    "name": "Mock OpenAI EU",
+    "type": "openai",
+    "baseUrl": "http://localhost:3099",
+    "apiKey": "sk-mock",
+    "models": [
+      "gpt-4",
+      "gpt-3.5-turbo"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "mock-ant-1",
+    "name": "Mock Anthropic US",
+    "type": "anthropic",
+    "baseUrl": "http://localhost:3099",
+    "apiKey": "sk-mock",
+    "models": [
+      "claude-3-opus",
+      "claude-3-sonnet"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "mock-ant-2",
+    "name": "Mock Anthropic EU",
+    "type": "anthropic",
+    "baseUrl": "http://localhost:3099",
+    "apiKey": "sk-mock",
+    "models": [
+      "claude-3-sonnet"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "mock-res-1",
+    "name": "Mock RES Default",
+    "type": "res",
+    "baseUrl": "http://localhost:3099",
+    "apiKey": "sk-mock",
+    "models": [
+      "res-model-v1"
+    ],
+    "status": "active"
+  }
+]

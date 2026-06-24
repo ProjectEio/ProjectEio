@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RES → XXX 格式转换</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background:#0b0d12; color:#c0caf5; font-family:system-ui,sans-serif; padding:16px; font-size:14px; }
+  h1 { font-size:18px; margin-bottom:4px; }
+  .sub { color:#7d8590; margin-bottom:20px; font-size:13px; }
+  .card { background:#131722; border:1px solid #2a2f3a; border-radius:6px; padding:16px; margin-bottom:12px; }
+  .card h2 { font-size:14px; color:#7aa2f7; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.05em; }
+  label { display:block; margin-bottom:4px; color:#7d8590; font-size:12px; }
+  input, select, textarea { width:100%; background:#0b0d12; border:1px solid #2a2f3a; color:#c0caf5; padding:8px 10px; border-radius:4px; font-family:inherit; font-size:13px; margin-bottom:10px; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:#7aa2f7; }
+  textarea { resize:vertical; min-height:140px; font-family:ui-monospace,monospace; }
+  button { background:#7aa2f7; color:#0b0d12; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-weight:500; font-size:13px; }
+  button:hover { opacity:0.9; }
+  button.ghost { background:transparent; color:#c0caf5; border:1px solid #2a2f3a; }
+  button.danger { background:#f7768e; }
+  .row { display:flex; gap:10px; align-items:flex-end; }
+  .row > * { flex:1; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid #2a2f3a; }
+  th { color:#7d8590; font-weight:500; font-size:12px; text-transform:uppercase; }
+  pre { background:#0b0d12; border:1px solid #2a2f3a; border-radius:4px; padding:12px; overflow:auto; font-family:ui-monospace,monospace; font-size:12px; color:#9ece6a; }
+  .status-ok { color:#9ece6a; }
+  .status-err { color:#f7768e; }
+  .radio-group { display:flex; gap:16px; margin-bottom:12px; }
+  .radio-group label { display:flex; align-items:center; gap:6px; color:#c0caf5; font-size:13px; margin:0; cursor:pointer; }
+  .radio-group input { width:auto; margin:0; }
+</style>
+</head>
+<body>
+  <h1>RES → XXX 格式转换</h1>
+  <div class="sub">将 RES（自定义）格式响应转换为 OpenAI / Anthropic / Raw 格式 — 适配客户端期望的标准协议。</div>
+
+  <div class="card">
+    <h2>Convert</h2>
+    <form id="convertForm">
+      <label>Target format</label>
+      <div class="radio-group">
+        <label><input type="radio" name="target" value="openai" checked /> openai</label>
+        <label><input type="radio" name="target" value="anthropic" /> anthropic</label>
+        <label><input type="radio" name="target" value="raw" /> raw</label>
+      </div>
+
+      <label for="modelName">Model name (optional)</label>
+      <input id="modelName" type="text" placeholder="gpt-4o" />
+
+      <label for="resContent">Sample RES content</label>
+      <textarea id="resContent" placeholder="粘贴 RES 格式响应内容..."></textarea>
+
+      <button type="submit">Convert</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Output</h2>
+    <pre id="convertResult">等待转换...</pre>
+  </div>
+
+<script>
+  const PLUGIN_NAME = 'res2xxx'
+
+  async function invoke(handler, params) {
+    const res = await fetch(`/api/admin/plugins/${PLUGIN_NAME}/invoke`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handler, params })
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`)
+    return res.json()
+  }
+
+  function show(panelId, content, ok = true) {
+    const el = document.getElementById(panelId)
+    el.className = ok ? 'status-ok' : 'status-err'
+    el.textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2)
+  }
+
+  document.getElementById('convertForm').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    try {
+      const target = document.querySelector('input[name="target"]:checked').value
+      const content = document.getElementById('resContent').value
+      const model = document.getElementById('modelName').value.trim()
+      const params = {
+        target,
+        content,
+      }
+      if (model) params.model = model
+      const result = await invoke('convert', params)
+      show('convertResult', result, true)
+    } catch (err) {
+      show('convertResult', String(err), false)
+    }
+  })
+</script>
+</body>
+</html>

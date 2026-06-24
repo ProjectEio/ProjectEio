@@ -1,0 +1,12 @@
+[
+  {
+    "nodeId": "mock-oa-1",
+    "model": "gpt-4o",
+    "capabilities": {
+      "vision": true,
+      "tools": true,
+      "streaming": true
+    },
+    "testedAt": 1782307944045
+  }
+]

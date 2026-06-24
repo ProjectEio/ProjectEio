@@ -137,6 +137,7 @@ export function createModelRewritePlugin(): PluginDefinition {
       route: '/webui/model-rewrite',
       label: 'Model Rewrite',
       icon: 'edit',
+      iframe: true,
       config: {
         description:
           '模型名重写规则管理 — 标签/正则/前缀/精确匹配，多方案多轮',
