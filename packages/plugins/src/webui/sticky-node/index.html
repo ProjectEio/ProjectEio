@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sticky Node — 节点亲和性</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background:#0b0d12; color:#c0caf5; font-family:system-ui,sans-serif; padding:16px; font-size:14px; }
+  h1 { font-size:18px; margin-bottom:4px; }
+  .sub { color:#7d8590; margin-bottom:20px; font-size:13px; }
+  .card { background:#131722; border:1px solid #2a2f3a; border-radius:6px; padding:16px; margin-bottom:12px; }
+  .card h2 { font-size:14px; color:#7aa2f7; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.05em; }
+  label { display:block; margin-bottom:4px; color:#7d8590; font-size:12px; }
+  input, select, textarea { width:100%; background:#0b0d12; border:1px solid #2a2f3a; color:#c0caf5; padding:8px 10px; border-radius:4px; font-family:inherit; font-size:13px; margin-bottom:10px; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:#7aa2f7; }
+  textarea { resize:vertical; min-height:80px; font-family:ui-monospace,monospace; }
+  button { background:#7aa2f7; color:#0b0d12; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-weight:500; font-size:13px; }
+  button:hover { opacity:0.9; }
+  button.ghost { background:transparent; color:#c0caf5; border:1px solid #2a2f3a; }
+  button.danger { background:#f7768e; }
+  .row { display:flex; gap:10px; align-items:flex-end; }
+  .row > * { flex:1; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid #2a2f3a; }
+  th { color:#7d8590; font-weight:500; font-size:12px; text-transform:uppercase; }
+  pre { background:#0b0d12; border:1px solid #2a2f3a; border-radius:4px; padding:12px; overflow:auto; font-family:ui-monospace,monospace; font-size:12px; color:#9ece6a; }
+  .status-ok { color:#9ece6a; }
+  .status-err { color:#f7768e; }
+  .btn-group { display:flex; gap:8px; flex-wrap:wrap; }
+  .btn-group button { flex:0 0 auto; }
+  .btn-group button.active { background:#9ece6a; }
+  .empty { color:#7d8590; font-style:italic; padding:12px 0; }
+</style>
+</head>
+<body>
+  <h1>Sticky Node — 节点亲和性</h1>
+  <div class="sub">粘性节点路由：同一会话或同一模型固定到同一节点，支持多种亲和性策略。</div>
+
+  <div class="card">
+    <h2>Strategy</h2>
+    <label>选择亲和性策略 — 决定 affinity key 的派生方式。</label>
+    <div class="btn-group" id="strategyButtons">
+      <button type="button" data-strategy="session" class="active">session</button>
+      <button type="button" data-strategy="model">model</button>
+      <button type="button" data-strategy="custom">custom</button>
+    </div>
+    <div style="margin-top:12px;">
+      <label for="routeKey">Custom Key (optional)</label>
+      <input id="routeKey" type="text" placeholder="例如：user:42 或 sess:abc" />
+      <button type="button" id="routeBtn">Apply route</button>
+    </div>
+    <pre id="routeResult" style="margin-top:12px; display:none;"></pre>
+  </div>
+
+  <div class="card">
+    <h2>Bindings</h2>
+    <div class="row">
+      <div>
+        <label>查看当前 key → node 绑定表</label>
+      </div>
+      <div style="flex:0 0 auto;">
+        <button type="button" id="listBtn">List bindings</button>
+      </div>
+    </div>
+    <div id="bindingsContainer" style="margin-top:12px;">
+      <div class="empty">尚未加载，点击 “List bindings”。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Clear Key</h2>
+    <form id="clearForm">
+      <label for="clearKey">Affinity Key</label>
+      <input id="clearKey" type="text" placeholder="要清除的 key" required />
+      <button type="submit" class="danger">Clear binding</button>
+    </form>
+    <pre id="clearResult" style="margin-top:12px; display:none;"></pre>
+  </div>
+
+<script>
+  const PLUGIN_NAME = 'sticky-node'
+
+  async function invoke(handler, params) {
+    const res = await fetch(`/api/admin/plugins/${PLUGIN_NAME}/invoke`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handler, params })
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`)
+    return res.json()
+  }
+
+  function show(panelId, content, ok = true) {
+    const el = document.getElementById(panelId)
+    el.style.display = 'block'
+    el.className = ok ? 'status-ok' : 'status-err'
+    el.textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2)
+  }
+
+  let currentStrategy = 'session'
+  const strategyButtons = document.querySelectorAll('#strategyButtons button')
+  strategyButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      strategyButtons.forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      currentStrategy = btn.dataset.strategy
+    })
+  })
+
+  document.getElementById('routeBtn').addEventListener('click', async () => {
+    try {
+      const key = document.getElementById('routeKey').value.trim()
+      const params = { strategy: currentStrategy }
+      if (key) params.key = key
+      const result = await invoke('route', params)
+      show('routeResult', result, true)
+    } catch (err) {
+      show('routeResult', String(err), false)
+    }
+  })
+
+  document.getElementById('listBtn').addEventListener('click', async () => {
+    const container = document.getElementById('bindingsContainer')
+    container.innerHTML = '<div class="empty">加载中...</div>'
+    try {
+      const result = await invoke('list', {})
+      const raw = result?.output?.content ?? result?.ctx?.output?.content ?? '{}'
+      let mappings = {}
+      try { mappings = JSON.parse(raw) } catch (_) { mappings = {} }
+      const keys = Object.keys(mappings)
+      if (keys.length === 0) {
+        container.innerHTML = '<div class="empty">当前没有绑定。</div>'
+        return
+      }
+      let html = '<table><thead><tr><th>Key</th><th>Node</th><th></th></tr></thead><tbody>'
+      for (const k of keys) {
+        const v = mappings[k]
+        html += `<tr><td>${escapeHtml(k)}</td><td>${escapeHtml(String(v))}</td>` +
+                `<td style="text-align:right;"><button type="button" class="ghost" data-rmkey="${escapeAttr(k)}">Remove</button></td></tr>`
+      }
+      html += '</tbody></table>'
+      container.innerHTML = html
+      container.querySelectorAll('button[data-rmkey]').forEach(b => {
+        b.addEventListener('click', async () => {
+          try {
+            await invoke('clear', { key: b.dataset.rmkey })
+            document.getElementById('listBtn').click()
+          } catch (err) {
+            container.innerHTML = `<div class="status-err">${escapeHtml(String(err))}</div>`
+          }
+        })
+      })
+    } catch (err) {
+      container.innerHTML = `<div class="status-err">${escapeHtml(String(err))}</div>`
+    }
+  })
+
+  document.getElementById('clearForm').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    try {
+      const key = document.getElementById('clearKey').value.trim()
+      const result = await invoke('clear', { key })
+      show('clearResult', `已清除 key: ${key}\n\n` + JSON.stringify(result, null, 2), true)
+    } catch (err) {
+      show('clearResult', String(err), false)
+    }
+  })
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]))
+  }
+  function escapeAttr(s) { return escapeHtml(s) }
+</script>
+</body>
+</html>

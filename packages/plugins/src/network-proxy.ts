@@ -100,6 +100,7 @@ export function createNetworkProxyPlugin(): PluginDefinition {
       route: '/webui/network-proxy',
       label: 'Network Proxy',
       icon: 'globe',
+      iframe: true,
       config: {
         levels: ['global', 'strategy', 'node', 'model'],
         description: '三层代理配置（全局 → 策略组 → 节点/模型）',

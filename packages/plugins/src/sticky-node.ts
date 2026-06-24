@@ -72,6 +72,7 @@ export function createStickyNodePlugin(): PluginDefinition {
       route: '/webui/sticky-node',
       label: 'Sticky Node',
       icon: 'pin',
+      iframe: true,
       config: {
         description: '管理粘性路由表，查看节点亲和性绑定',
         strategies: [...strategyOptions],

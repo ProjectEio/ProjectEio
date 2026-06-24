@@ -1,6 +1,9 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { cors } from 'hono/cors'
+import { serveStatic } from '@hono/node-server/serve-static'
+import { readFileSync, existsSync } from 'node:fs'
+import { join, relative, resolve } from 'node:path'
 import { pluginRegistry } from './core/plugin'
 import { Router } from './core/router'
 import { echoPlugin } from './plugins/echo'
@@ -17,10 +20,15 @@ import { OpenAIFormat } from './formats/openai'
 import { AnthropicFormat } from './formats/anthropic'
 import { RESFormat } from './formats/res'
 import { createMockServer } from './mock/server'
-import type { Context, NodeConfig, RouteRule, RequestInput } from './core/types'
+import { initStore, store } from './core/store'
+import { createAdminApi } from './api/admin'
+import { startHealthMonitor } from './services/health'
+import { log } from './services/logger'
+import { PLUGINS_ROOT, SERVER_ROOT } from './core/runtime'
+import type { Context, RequestInput } from './core/types'
 
 // ============================================================
-// Main orchestrator — plugin registration, routing, admin API
+// Main orchestrator
 // ============================================================
 
 // --- 1. Load plugins ---
@@ -32,34 +40,18 @@ pluginRegistry.register(createNetworkProxyPlugin())
 pluginRegistry.register(createModelRewritePlugin())
 pluginRegistry.register(createRes2XxxPlugin())
 
-// --- 2. Setup router ---
+// --- 2. Initialize store (loads or seeds defaults) ---
+initStore()
+
+// --- 3. Setup router from store ---
 const router = new Router()
 router.registerFormat(new OpenAIFormat())
 router.registerFormat(new AnthropicFormat())
 router.registerFormat(new RESFormat())
+router.setNodes(store.nodes.getAll())
+router.setRules(store.routes.getAll())
 
-// --- 3. Configure nodes ---
-const nodes: NodeConfig[] = [
-  { id: 'mock-oa-1', name: 'Mock OpenAI US', type: 'openai', baseUrl: 'http://localhost:3099', apiKey: 'sk-mock', models: ['gpt-4', 'gpt-3.5-turbo'], status: 'active' },
-  { id: 'mock-oa-2', name: 'Mock OpenAI EU', type: 'openai', baseUrl: 'http://localhost:3099', apiKey: 'sk-mock', models: ['gpt-4', 'gpt-3.5-turbo'], status: 'active' },
-  { id: 'mock-ant-1', name: 'Mock Anthropic US', type: 'anthropic', baseUrl: 'http://localhost:3099', apiKey: 'sk-mock', models: ['claude-3-opus', 'claude-3-sonnet'], status: 'active' },
-  { id: 'mock-ant-2', name: 'Mock Anthropic EU', type: 'anthropic', baseUrl: 'http://localhost:3099', apiKey: 'sk-mock', models: ['claude-3-sonnet'], status: 'active' },
-  { id: 'mock-res-1', name: 'Mock RES Default', type: 'res', baseUrl: 'http://localhost:3099', apiKey: 'sk-mock', models: ['res-model-v1'], status: 'active' },
-]
-router.setNodes(nodes)
-
-// --- 4. Configure routes ---
-const rules: RouteRule[] = [
-  { id: 'r1', name: 'GPT-4 → OpenAI US (sticky)', priority: 100, match: { model: 'gpt-4' }, nodeId: 'mock-oa-1', pluginChain: ['sticky-node.route', 'transformer.log', 'transformer.cap_messages.{"count":10}', 'echo.echo'] },
-  { id: 'r2', name: 'GPT-3.5 → OpenAI EU (fallback)', priority: 50, match: { model: 'gpt-3.5-turbo' }, nodeId: 'mock-oa-2', pluginChain: ['transformer.log', 'echo.echo'] },
-  { id: 'r3', name: 'Claude → Anthropic US', priority: 100, match: { model: 'claude-3-opus' }, nodeId: 'mock-ant-1', pluginChain: ['transformer.log', 'echo.echo'] },
-  { id: 'r4', name: 'Claude Sonnet → Anthropic EU', priority: 80, match: { model: 'claude-3-sonnet' }, nodeId: 'mock-ant-2', pluginChain: ['transformer.log', 'echo.echo'] },
-  { id: 'r5', name: 'RES model → RES node', priority: 100, match: { model: 'res-model' }, nodeId: 'mock-res-1', pluginChain: ['res2xxx.convert.{"target":"openai"}', 'echo.echo'] },
-  { id: 'r99', name: 'Catch-all → OpenAI US', priority: 1, match: {}, nodeId: 'mock-oa-1', pluginChain: ['echo.echo'] },
-]
-router.setRules(rules)
-
-// --- 5. Create main app ---
+// --- 4. Create main app ---
 export function createApp() {
   const app = new Hono()
 
@@ -82,30 +74,23 @@ export function createApp() {
   })
 
   // --- Admin API ---
-  app.get('/api/admin/plugins', (c) => {
-    return c.json({
-      plugins: pluginRegistry.getAll().map((p) => ({
-        name: p.name,
-        version: p.version,
-        description: p.description,
-        handlers: Object.keys(p.handlers),
-        webui: p.webui ?? null,
-      })),
-    })
-  })
+  app.route('/api/admin', createAdminApi(router, pluginRegistry, testRoute))
 
-  app.get('/api/admin/nodes', (c) => c.json({ nodes: router.getAllNodes() }))
-  app.get('/api/admin/routes', (c) => c.json({ rules: router.getAllRules() }))
-  app.get('/api/admin/webui', (c) => c.json({ webui: pluginRegistry.getWebUIRoutes() }))
+  // --- Plugin static webui ---
+  mountPluginWebUI(app)
 
   // --- Mount mock server at /mock ---
   const mockApp = createMockServer()
   app.route('/mock', mockApp)
 
+  // --- Start health monitor ---
+  startHealthMonitor(router, store)
+
+  log.info('main', 'Application ready')
   return app
 }
 
-// --- Request handler: routing + plugin chain + format output ---
+// --- Request handler ---
 async function handleRequest(c: any, body: Record<string, unknown>, formatName: string) {
   const fmt = router.getFormat(formatName)
   if (!fmt) return c.json({ error: `Unsupported format: ${formatName}` }, 400)
@@ -123,14 +108,12 @@ async function handleRequest(c: any, body: Record<string, unknown>, formatName: 
     errors: [],
   }
 
-  // Execute plugin chain
   const finalCtx = await router.executeChain(ctx, resolved.chain)
 
   if (finalCtx.errors.length > 0) {
     return c.json({ error: finalCtx.errors.map((e) => e.message) }, 502)
   }
 
-  // Handle streaming
   if (input.stream) {
     const content = finalCtx.output?.content ?? ''
     const words = content.split(' ')
@@ -148,6 +131,50 @@ async function handleRequest(c: any, body: Record<string, unknown>, formatName: 
   }
 
   return c.json(fmt.formatResponse(finalCtx))
+}
+
+// --- Plugin webui static mounting ---
+function mountPluginWebUI(app: Hono): void {
+  for (const p of pluginRegistry.getAll()) {
+    const webui = p.webui
+    if (!webui || !webui.iframe) continue
+
+    const distDir = join(PLUGINS_ROOT, 'dist-webui', p.name)
+    const devDir = join(PLUGINS_ROOT, 'src', 'webui', p.name)
+    const customDir = webui.staticDir ? resolve(PLUGINS_ROOT, webui.staticDir) : undefined
+
+    const candidate = (customDir && existsSync(customDir)) ? customDir
+      : existsSync(distDir) ? distDir
+      : existsSync(devDir) ? devDir
+      : null
+
+    if (!candidate) {
+      log.warn('webui', `No static dir for plugin "${p.name}"`, { distDir, devDir })
+      continue
+    }
+
+    // serveStatic requires a path relative to cwd. We compute it from SERVER_ROOT (process cwd).
+    const cwd = process.cwd()
+    const relRoot = relative(cwd, candidate).split('\\').join('/')
+
+    app.get(`/plugins/${p.name}/webui/*`, serveStatic({
+      root: relRoot || '.',
+      rewriteRequestPath: (path) => path.replace(new RegExp(`^/plugins/${p.name}/webui`), ''),
+    }))
+
+    // Fallback handler if serveStatic didn't match (e.g. index)
+    app.get(`/plugins/${p.name}/webui`, (c) => {
+      const indexFile = join(candidate, 'index.html')
+      if (existsSync(indexFile)) {
+        const content = readFileSync(indexFile, 'utf8')
+        return c.html(content)
+      }
+      return c.text('Not found', 404)
+    })
+
+    log.info('webui', `mounted plugin webui /plugins/${p.name}/webui -> ${candidate}`)
+  }
+  void SERVER_ROOT
 }
 
 // --- Standalone test helper ---

@@ -85,6 +85,10 @@ export interface WebUIRegistration {
   label: string
   icon?: string
   config?: Record<string, unknown>
+  /** static directory (relative to plugin package) served at /plugins/:name/webui */
+  staticDir?: string
+  /** if true, the page is served from /plugins/:name/webui/index.html */
+  iframe?: boolean
 }
 
 export interface PluginDefinition {
@@ -94,6 +98,67 @@ export interface PluginDefinition {
   handlers: Record<string, PluginHandler>
   webui?: WebUIRegistration
   onLoad?: () => void | Promise<void>
+  /** Optional sub-routes the plugin wants registered on the main app */
+  registerRoutes?: (app: any) => void
+}
+
+// === Node grouping ===
+
+export interface NodeGroup {
+  id: string
+  name: string
+  description?: string
+  type: 'plugin' | 'strategy' | 'manual'
+  nodeIds: string[]
+  tags?: string[]
+}
+
+export interface NodeBlacklistEntry {
+  id: string
+  nodeId?: string
+  modelKey?: string
+  reason: string
+  createdAt: number
+  expiresAt?: number
+}
+
+export interface ModelTag {
+  name: string
+  type: 'capability' | 'manual' | 'auto'
+  description?: string
+}
+
+export interface HealthRecord {
+  nodeId: string
+  status: 'healthy' | 'degraded' | 'down' | 'unknown'
+  lastChecked: number
+  latencyMs?: number
+  consecutiveFailures: number
+  message?: string
+}
+
+export interface CapabilityTestResult {
+  nodeId: string
+  model: string
+  capabilities: {
+    vision?: boolean
+    tools?: boolean
+    multiTurn?: boolean
+    thinking?: boolean
+    longContext?: boolean
+    streaming?: boolean
+  }
+  protocolDetected?: NodeType
+  testedAt: number
+  errors?: string[]
+}
+
+export interface LogEntry {
+  ts: number
+  level: 'debug' | 'info' | 'warn' | 'error'
+  source: string
+  msg: string
+  data?: unknown
 }
 
 // === Format adapter ===

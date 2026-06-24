@@ -88,6 +88,7 @@ export function createRes2XxxPlugin(): PluginDefinition {
       route: '/webui/res2xxx',
       label: 'RES Converter',
       icon: 'swap',
+      iframe: true,
       config: {
         targets: ['openai', 'anthropic', 'raw'],
         description: 'RES 响应格式转换（RES → OpenAI / Anthropic）',

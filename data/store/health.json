@@ -1,0 +1,37 @@
+[
+  {
+    "nodeId": "mock-oa-1",
+    "status": "down",
+    "lastChecked": 1782308563571,
+    "consecutiveFailures": 23,
+    "message": "fetch failed"
+  },
+  {
+    "nodeId": "mock-oa-2",
+    "status": "down",
+    "lastChecked": 1782308563573,
+    "consecutiveFailures": 23,
+    "message": "fetch failed"
+  },
+  {
+    "nodeId": "mock-ant-1",
+    "status": "down",
+    "lastChecked": 1782308563586,
+    "consecutiveFailures": 23,
+    "message": "fetch failed"
+  },
+  {
+    "nodeId": "mock-ant-2",
+    "status": "down",
+    "lastChecked": 1782308563596,
+    "consecutiveFailures": 23,
+    "message": "fetch failed"
+  },
+  {
+    "nodeId": "mock-res-1",
+    "status": "down",
+    "lastChecked": 1782308563609,
+    "consecutiveFailures": 23,
+    "message": "fetch failed"
+  }
+]

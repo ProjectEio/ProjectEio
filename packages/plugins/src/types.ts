@@ -28,5 +28,7 @@ export interface WebUIRegistration {
   route: string
   label: string
   icon?: string
+  iframe?: boolean
+  staticDir?: string
   config?: Record<string, any>
 }
