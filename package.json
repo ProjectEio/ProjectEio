@@ -1,0 +1,21 @@
+{
+  "name": "ProjectEio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:client": "pnpm --filter @project-eio/client dev",
+    "dev:server": "pnpm --filter @project-eio/server dev",
+    "dev": "pnpm run /^dev:/",
+    "build:client": "pnpm --filter @project-eio/client build",
+    "build:server": "pnpm --filter @project-eio/server build",
+    "build": "pnpm run /^build:/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.0",
+  "dependencies": {
+    "vite": "^8.1.0"
+  }
+}
