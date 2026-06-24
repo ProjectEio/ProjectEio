@@ -1,10 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { Button } from '@/components/Button'
-import { Card } from '@/components/Card'
 import { Checkbox } from '@/components/Checkbox'
-import { FormField } from '@/components/FormField'
-import { Input } from '@/components/Input'
+import { FloatingInput } from '@/components/FloatingInput'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuth } from '@/auth/useAuth'
 import { HttpError } from '@/lib/http'
@@ -13,6 +11,24 @@ import styles from './LoginPage.module.css'
 interface LocState {
   from?: string
 }
+
+const LoginIcon = (
+  <svg
+    viewBox="0 0 24 24"
+    width="16"
+    height="16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+    <polyline points="10 17 15 12 10 7" />
+    <line x1="15" y1="12" x2="3" y2="12" />
+  </svg>
+)
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -23,6 +39,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState('admin')
   const [password, setPassword] = useState('admin123')
   const [remember, setRemember] = useState(true)
+  const [showPwd, setShowPwd] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -35,9 +52,7 @@ export default function LoginPage() {
       navigate(from, { replace: true })
     } catch (err) {
       const msg =
-        err instanceof HttpError
-          ? err.message
-          : '登录失败，请稍后重试'
+        err instanceof HttpError ? err.message : '登录失败，请稍后重试'
       setError(msg)
     } finally {
       setSubmitting(false)
@@ -55,37 +70,43 @@ export default function LoginPage() {
       </header>
 
       <main className={styles.main}>
-        <Card className={styles.card} padding="lg">
+        <section className={styles.panel}>
           <h1 className={styles.title}>登录你的账号</h1>
-          <p className={styles.subtitle}>
-            进入控制台，管理节点池与插件
-          </p>
 
           <form onSubmit={onSubmit} noValidate>
-            <FormField label="账号" htmlFor="username" required>
-              <Input
+            <div className={styles.field}>
+              <FloatingInput
+                label="账号"
                 id="username"
-                size="lg"
                 autoComplete="username"
-                placeholder="请输入账号"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={submitting}
               />
-            </FormField>
+            </div>
 
-            <FormField label="密码" htmlFor="password" required>
-              <Input
+            <div className={styles.field}>
+              <FloatingInput
+                label="密码"
                 id="password"
-                type="password"
-                size="lg"
+                type={showPwd ? 'text' : 'password'}
                 autoComplete="current-password"
-                placeholder="请输入密码"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={submitting}
+                suffix={
+                  <button
+                    type="button"
+                    className={styles.eye}
+                    onClick={() => setShowPwd((v) => !v)}
+                    aria-label={showPwd ? '隐藏密码' : '显示密码'}
+                    tabIndex={-1}
+                  >
+                    {showPwd ? '隐藏' : '显示'}
+                  </button>
+                }
               />
-            </FormField>
+            </div>
 
             <div className={styles.row}>
               <Checkbox
@@ -110,15 +131,13 @@ export default function LoginPage() {
               size="lg"
               block
               loading={submitting}
+              icon={LoginIcon}
+              className={styles.submit}
             >
               登 录
             </Button>
           </form>
-
-          <div className={styles.hint}>
-            演示账号：<code>admin</code> / <code>admin123</code>
-          </div>
-        </Card>
+        </section>
       </main>
     </div>
   )

@@ -28,6 +28,11 @@ body {
   transition: background-color 200ms ease, color 200ms ease;
 }
 
+/* 主题切换走 View Transition 时，关掉常规过渡，避免和斜线揭示叠加发虚 */
+[data-theme-reveal='true'] body {
+  transition: none;
+}
+
 a {
   color: var(--primary-color);
   text-decoration: none;
@@ -46,13 +51,36 @@ button {
   color: var(--text-primary);
 }
 
+/* =========================================================
+   View Transition: 主题切换斜线揭示动画
+   - 关掉默认的 cross-fade，交给 JS 的 clip-path 关键帧接管
+   - data-theme-reveal 仅在主题切换的瞬间挂在 <html> 上
+   ========================================================= */
+[data-theme-reveal='true']::view-transition-image-pair(root) {
+  isolation: auto;
+}
+
+[data-theme-reveal='true']::view-transition-old(root),
+[data-theme-reveal='true']::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+[data-theme-reveal='true']::view-transition-old(root) {
+  z-index: 0;
+}
+
+[data-theme-reveal='true']::view-transition-new(root) {
+  z-index: 1;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 8px;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-disabled);

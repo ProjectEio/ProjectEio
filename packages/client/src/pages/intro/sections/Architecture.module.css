@@ -89,7 +89,7 @@
   padding: 2px 8px;
   background: var(--color-bg-soft);
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: 2px;
 }
 
 .layerName {
@@ -126,7 +126,7 @@
   top: 9px;
   width: 6px;
   height: 6px;
-  border-radius: 999px;
+  border-radius: 2px;
   background: var(--accent-stop);
   box-shadow: 0 0 8px var(--accent-stop);
 }
